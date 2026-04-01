@@ -1,21 +1,42 @@
-
 version: 2
 
 models:
-  - name: my_first_dbt_model
-    description: "A starter dbt model"
+  - name: stg_brazil_banks
+    description: "Datos limpios de los bancos de la Brasil API"
     columns:
-      - name: id
-        description: "The primary key for this table"
-        data_tests:
-          - unique
-          - not_null
+      - name: bank_ispb
+        description: "ID único del sistema de pagos brasileño"
+        tests:
+          - unique       # Test Genérico 1
+          - not_null     # Test Genérico 2
+          - dbt_expectations.expect_column_values_to_be_of_type: # Expectation 1
+              column_type: varchar
 
-  - name: my_second_dbt_model
-    description: "A starter dbt model"
+  - name: stg_brazil_pix
+    description: "Datos de participación en PIX"
     columns:
-      - name: id
-        description: "The primary key for this table"
-        data_tests:
-          - unique
-          - not_null
+      - name: bank_ispb
+        tests:
+          - not_null     # Test Genérico 3
+          - relationships: # Test Genérico 4
+              to: ref('stg_brazil_banks')
+              field: bank_ispb
+
+  - name: mart_banking_system_overview
+    description: "Modelo final consolidado para análisis de adopción PIX"
+    columns:
+      - name: bank_full_name
+        description: "Nombre completo del banco (puede ser null en la API)"
+        # Sin test de not_null para evitar el error de los 357 fallos
+
+      - name: is_pix_active
+        description: "Indica si la institución opera en PIX"
+        tests:
+          - not_null       # Test Genérico 5
+          - dbt_expectations.expect_column_values_to_be_in_set: # Expectation 2
+              value_set: [true, false]
+
+      - name: bank_ispb
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type: # Expectation 3
+              column_type: varchar

@@ -1,9 +1,9 @@
 {{ config(materialized='view') }}
 
 SELECT 
-    ispb AS bank_ispb,
-    code AS bank_code,
+    -- Aplicamos el mismo formato de 8 dígitos que en PIX
+    LPAD(TRIM(CAST(ispb AS STRING)), 8, '0') AS bank_ispb,
+    TRY_CAST(code AS INTEGER) AS bank_code,
     "name" AS bank_name,
     fullname AS bank_full_name
--- Usa la función source con los nombres exactos de tu sources.yml
 FROM {{ source('brasil_api', 'brazil_banks') }}
