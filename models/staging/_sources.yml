@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: brasil_api
+    database: airbyte_curso
+    schema: main # Ajusta si tu esquema en MotherDuck tiene otro nombre
+    tables:
+      - name: brazil_pix
+      - name: brazil_banks
